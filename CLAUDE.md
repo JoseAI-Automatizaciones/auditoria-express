@@ -1,5 +1,5 @@
 # Auditoría Express — contexto
 
-Proyecto Platzi de automatización post-lead. `api/submit.js` es un proxy seguro hacia n8n: el token va solo en `N8N_WEBHOOK_TOKEN` de Vercel y se envía como `X-Webhook-Token`.
+Proyecto Platzi de automatización post-lead. El formulario envía directamente al webhook público de n8n mediante URLSearchParams; la URL es visible en el cliente.
 
-No enviar el webhook directamente desde el navegador. Mantener rate limit, timeout y validación. n8n debe encadenar email, Sheet/CRM y notificación. Antes de commit/push: review de Codex.
+El webhook es público por decisión del usuario; n8n debe configurar CORS y gestionar anti-spam. n8n debe encadenar email, Sheet/CRM y notificación. Antes de commit/push: review de Codex.

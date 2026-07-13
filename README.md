@@ -4,13 +4,9 @@ Landing para demostrar que un lead recibe respuesta y organización automática 
 
 ## Arquitectura
 
-`Navegador → /api/submit (Vercel) → n8n Webhook autenticado → Email + CRM/Sheet + notificación`
+`Navegador → n8n Webhook público → Email + CRM/Sheet + notificación`
 
-El navegador nunca conoce el token de n8n. Vercel añade el header `X-Webhook-Token` desde `N8N_WEBHOOK_TOKEN`.
-
-## Variables de Vercel
-
-- `N8N_WEBHOOK_URL`: `https://jose-ai-n8n.vjgiak.easypanel.host/webhook/Platzi13dejulio`
+El navegador envía los datos directamente al webhook público. No hay variables de Vercel ni autenticación en este modo.`n`n## CORS en n8n`n`nConfigura el webhook para aceptar solicitudes desde el dominio de Vercel de esta landing. El formulario usa `application/x-www-form-urlencoded` para evitar un preflight innecesario.`n`n- `N8N_WEBHOOK_URL`: `https://jose-ai-n8n.vjgiak.easypanel.host/webhook/Platzi13dejulio`
 - `N8N_WEBHOOK_TOKEN`: un valor aleatorio largo, configurado únicamente en Vercel y n8n. Nunca en Git ni en este archivo.
 
 Genera el valor localmente con:
@@ -21,8 +17,8 @@ Genera el valor localmente con:
 
 ## Configuración del workflow n8n
 
-1. Crea un workflow y agrega **Webhook**: Method `POST`, Path `Platzi13dejulio`, Authentication **Header Auth**.
-2. En las credenciales Header Auth: nombre `X-Webhook-Token` y el mismo valor secreto que configuraste en Vercel.
+1. Crea un workflow y agrega **Webhook**: Method `POST`, Path `Platzi13dejulio`, Authentication **None** (webhook público).
+2. No configures credenciales de Header Auth.
 3. Conecta estas tres acciones:
    - **Send Email**: destinatario `{{$json.email}}`; usa el HTML de abajo.
    - **Google Sheets o CRM**: crea una fila/lead con `name`, `email`, `business`, `challenge`, `source`, `submitted_at`.
