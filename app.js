@@ -20,10 +20,9 @@ form.addEventListener('submit', async (event) => {
       method: 'POST',
       body: new URLSearchParams(Object.fromEntries(new FormData(form))),
     });
-    const data = await response.json().catch(() => ({}));
 
-    if (!response.ok) throw new Error(data.error || 'El webhook rechazó la solicitud.');
-    message.textContent = data.message || '¡Solicitud recibida! Te contactaremos pronto.';
+    if (!response.ok) throw new Error('No pudimos enviar tu solicitud. Intenta nuevamente.');
+    message.textContent = '¡Listo! Recibimos tu solicitud. Pronto nos estaremos contactando contigo.';
     form.reset();
   } catch (error) {
     message.textContent = error.message || 'No pudimos enviar tu solicitud. Intenta nuevamente.';
