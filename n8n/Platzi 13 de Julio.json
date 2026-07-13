@@ -1,0 +1,291 @@
+{
+  "name": "Platzi 13 de Julio",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "Platzi13dejulio",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -272,
+        0
+      ],
+      "id": "b5c37e98-ebd9-43d4-bb7f-65e7621b5c09",
+      "name": "Webhook",
+      "webhookId": "c81c57af-bfbb-41a7-908e-38dba78a3903"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ba5a8c1b-a25a-46af-81e7-27ec2b98010b",
+              "name": "body.name",
+              "value": "={{ $json.body.name }}",
+              "type": "string"
+            },
+            {
+              "id": "746ec5d8-2b69-419f-bc7c-bc732c45dc79",
+              "name": "body.email",
+              "value": "={{ $json.body.email }}",
+              "type": "string"
+            },
+            {
+              "id": "ef8452d1-9e08-4794-9f6f-57af53be1fb9",
+              "name": "body.business",
+              "value": "={{ $json.body.business }}",
+              "type": "string"
+            },
+            {
+              "id": "85e674f7-f179-43bc-a90c-b15ec7fc5b56",
+              "name": "body.challenge",
+              "value": "={{ $json.body.challenge }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -80,
+        0
+      ],
+      "id": "71e889d0-4c56-4c1f-8c75-624925420417",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "jsCode": "function escapeHtml(value) {\n  return String(value ?? '')\n    .replace(/&/g, '&amp;')\n    .replace(/</g, '&lt;')\n    .replace(/>/g, '&gt;')\n    .replace(/\"/g, '&quot;')\n    .replace(/'/g, '&#039;');\n}\n\nfunction readText(value, fallback) {\n  const text = String(value ?? '').trim();\n  return text || fallback;\n}\n\nreturn $input.all().map((item) => {\n  const incoming = item.json.body && typeof item.json.body === 'object'\n    ? item.json.body\n    : item.json;\n\n  const name = readText(incoming.name, 'hola');\n  const email = readText(incoming.email, '');\n  const business = readText(incoming.business, 'tu proyecto');\n  const challenge = readText(incoming.challenge, 'Mejorar la captación y el seguimiento de leads.');\n\n  const safeName = escapeHtml(name);\n  const safeBusiness = escapeHtml(business);\n  const safeChallenge = escapeHtml(challenge);\n\n  const emailHtml = [\n    '<!doctype html>',\n    '<html lang=\"es\"><body style=\"margin:0;padding:0;background:#f5f8fc;font-family:Arial,Helvetica,sans-serif;color:#0d1b2a;\">',\n    '<table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"background:#f5f8fc;padding:32px 16px;\"><tr><td align=\"center\">',\n    '<table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"max-width:620px;background:#ffffff;border-radius:18px;overflow:hidden;\">',\n    '<tr><td style=\"height:7px;background:#2de2b7;\"></td></tr>',\n    '<tr><td style=\"padding:36px 32px 24px;\">',\n    '<p style=\"margin:0 0 14px;color:#16856d;font-size:12px;font-weight:700;letter-spacing:1.4px;\">AUDITORÍA EXPRESS</p>',\n    '<h1 style=\"margin:0 0 18px;font-size:30px;line-height:1.18;color:#0d1b2a;\">Hola, ' + safeName + '.</h1>',\n    '<p style=\"margin:0 0 16px;font-size:16px;line-height:1.6;\">Gracias por solicitar una auditoría para <strong>' + safeBusiness + '</strong>. Ya recibimos tu información y nuestro sistema dejó tu solicitud organizada para seguimiento.</p>',\n    '<table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"margin:22px 0;background:#f5f8fc;border-radius:12px;\"><tr><td style=\"padding:18px 20px;border-left:4px solid #2de2b7;\">',\n    '<p style=\"margin:0 0 7px;font-size:12px;font-weight:700;letter-spacing:1px;color:#16856d;\">TU PRIORIDAD DECLARADA</p>',\n    '<p style=\"margin:0;font-size:16px;line-height:1.55;color:#243447;\">' + safeChallenge + '</p>',\n    '</td></tr></table>',\n    '<h2 style=\"margin:28px 0 12px;font-size:20px;color:#0d1b2a;\">Lo que revisaremos primero</h2>',\n    '<ol style=\"margin:0;padding-left:22px;font-size:16px;line-height:1.75;color:#243447;\">',\n    '<li>Qué ocurre desde que entra un lead hasta el primer contacto.</li>',\n    '<li>Cómo priorizar y responder antes de que el interés se enfríe.</li>',\n    '<li>Qué información conviene registrar para dar seguimiento.</li>',\n    '</ol>',\n    '<p style=\"margin:26px 0 0;font-size:16px;line-height:1.6;\">Pronto nos estaremos contactando contigo con los siguientes pasos.</p>',\n    '<p style=\"margin:28px 0 0;font-size:15px;color:#526579;\">— Equipo Auditoría Express</p>',\n    '</td></tr>',\n    '<tr><td style=\"padding:18px 32px;background:#0d1b2a;color:#b9c9dc;font-size:12px;line-height:1.5;\">Solicitud recibida desde Auditoría Express.</td></tr>',\n    '</table></td></tr></table></body></html>',\n  ].join('');\n\n  return {\n    json: {\n      ...item.json,\n      lead: { name, email, business, challenge },\n      to: email,\n      subject: 'Recibimos tu solicitud de auditoría, ' + name,\n      emailHtml,\n    },\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        112,
+        0
+      ],
+      "id": "14948264-6b82-4ac2-863b-c85405f21fe2",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.to }}",
+        "subject": "={{ $json.subject }}",
+        "message": "={{ $json.emailHtml }}",
+        "options": {
+          "appendAttribution": false,
+          "senderName": "TU NOMBRE "
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        304,
+        0
+      ],
+      "id": "3fb6b705-c64e-4ccf-a624-b4d7a5c3ef07",
+      "name": "Send a message",
+      "webhookId": "0880057e-b4ea-4e9b-aa14-d089ccbc2a7d",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "TpuHl2XRKRAa3JJd",
+          "name": "JMBC"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1wRbYF7H5Om_KRY4_EToefvveInrVnK6-3xAGiQiKyhM",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1wRbYF7H5Om_KRY4_EToefvveInrVnK6-3xAGiQiKyhM/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Id del Correo": "={{ $json.id }}",
+            "Nombre": "={{ $('Edit Fields').item.json.body.name }}",
+            "Correo ": "={{ $('Edit Fields').item.json.body.email }}",
+            "Negocio o proyecto": "={{ $('Edit Fields').item.json.body.business }}",
+            "Qué te gustaría mejorar?": "={{ $('Edit Fields').item.json.body.challenge }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Nombre",
+              "displayName": "Nombre",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Correo ",
+              "displayName": "Correo ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Negocio o proyecto",
+              "displayName": "Negocio o proyecto",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Qué te gustaría mejorar?",
+              "displayName": "Qué te gustaría mejorar?",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Id del Correo",
+              "displayName": "Id del Correo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        496,
+        0
+      ],
+      "id": "7397cbba-338a-41a0-ac12-d1ac49083b79",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ATBE9jByuwXlSgkI",
+          "name": "Jose AI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "TU ID AQUÍ ",
+        "text": "=Lead Nuevo \"Asesoría\"\n\n{{ $json.Nombre }}\n\n{{ $json[\"Correo \"] }}\n\n{{ $json[\"Negocio o proyecto\"] }}\n\n{{ $json[\"Qué te gustaría mejorar?\"] }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        720,
+        0
+      ],
+      "id": "e31153c0-0007-4ca2-8762-22829aeb0a01",
+      "name": "Send a text message",
+      "webhookId": "ff49b7ec-6525-4f9d-bfc9-32a162143fa8",
+      "credentials": {
+        "telegramApi": {
+          "id": "5gVdftcUaK6IJcsJ",
+          "name": "Fallos N8N"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "abb9f5bb-0ed3-4290-9139-351c52cdea11",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "90dd3963b59df2acd35afa271e059ba4206e5c225df51b59458023184cbc4861"
+  },
+  "nodeGroups": [],
+  "id": "SAbrxjKlZToI0Yi4",
+  "tags": []
+}

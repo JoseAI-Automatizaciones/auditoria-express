@@ -20,3 +20,7 @@ No usa variables de Vercel ni funciones serverless. El navegador hace un POST ap
 ## Prueba
 
 Envía un lead real desde la landing y confirma: correo recibido, fila/lead creado y notificación entregada.
+
+## Workflow descargable
+
+Puedes [descargar e importar el workflow de n8n](n8n/Platzi%2013%20de%20Julio.json) directamente desde este repositorio.
