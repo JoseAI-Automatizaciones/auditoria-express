@@ -1,5 +1,7 @@
 # Auditoría Express — contexto
 
-Proyecto Platzi de automatización post-lead. El formulario envía directamente al webhook público de n8n mediante URLSearchParams; la URL es visible en el cliente.
+Proyecto Platzi de automatización post-lead. El navegador envía el formulario a /api/submit en Vercel; esa función valida, limita abuso y reenvía los datos al webhook público de n8n. La URL del webhook no se expone al navegador.
 
-El webhook es público por decisión del usuario; n8n debe configurar CORS y gestionar anti-spam. n8n debe encadenar email, Sheet/CRM y notificación. Antes de commit/push: review de Codex.
+El webhook sigue sin autenticación por decisión del usuario. En n8n, el workflow debe encadenar email, Sheet/CRM y notificación, responder HTTP 2xx y usar los valores recibidos como {{$json.body.name}} si el nodo Webhook los ubica dentro de body.
+
+Configuración requerida en Vercel: N8N_WEBHOOK_URL. Nunca se commitean archivos .env*. Antes de commit/push: review de Codex.
